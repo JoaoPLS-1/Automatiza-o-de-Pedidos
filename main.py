@@ -1,18 +1,20 @@
 from pathlib import Path
-from parser_pdf import ler_pdf
+
+from parser_pdf import ler_pdf, extrair_pedido
 
 PASTA_PEDIDOS = Path("pedidos")
 
 pdfs = list(PASTA_PEDIDOS.glob("*.pdf"))
 
-if len(pdfs) == 0:
-    print("Nenhum PDF encontrado na pasta pedidos.")
+if not pdfs:
+    print("Nenhum PDF encontrado.")
     exit()
 
-pdf = pdfs[0]
+texto = ler_pdf(pdfs[0])
 
-print(f"Lendo arquivo: {pdf.name}\n")
+pedido = extrair_pedido(texto)
 
-texto = ler_pdf(pdf)
-
-print(texto)
+print("CLIENTE:", pedido.cliente)
+print("PRAZO:", pedido.prazo_pgto)
+print("ENTREGA:", pedido.entrega)
+print("QTDE ITENS:", pedido.qtde_itens)
