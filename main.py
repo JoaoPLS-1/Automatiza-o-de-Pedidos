@@ -1,40 +1,69 @@
-from pathlib import Path
+from config import (
+    PASTA_PEDIDOS,
+    PASTA_IMPORTADOS,
+    PASTA_ERROS
+)
 
-from parser_pdf import ler_pdf, extrair_pedido
+from parser_pdf import (
+    ler_pdf,
+    extrair_pedido
+)
 
-PASTA_PEDIDOS = Path("pedidos")
+from validator import Validator
+from logger import Logger
+from file_manager import FileManager
+from excel_writer import ExcelWriter
 
-pdfs = list(PASTA_PEDIDOS.glob("*.pdf"))
 
-if not pdfs:
-    print("Nenhum PDF encontrado.")
-    exit()
+logger = Logger()
+files = FileManager()
+excel = ExcelWriter()
 
-texto = ler_pdf(pdfs[0])
 
-pedido = extrair_pedido(texto)
+logger.separador()
+logger.info("AUTOMAÇÃO DE PEDIDOS")
+logger.separador()
 
-print("===================================")
-print("PEDIDO")
-print("===================================")
+arquivos = files.listar_pdfs(PASTA_PEDIDOS)
 
-print(f"Número........: {pedido.numero}")
-print(f"Cliente.......: {pedido.nome_cliente}")
-print(f"Código Cliente: {pedido.codigo_cliente}")
-print(f"Prazo.........: {pedido.prazo_pgto}")
-print(f"Entrega.......: {pedido.entrega}")
-print(f"Vendedor......: {pedido.vendedor}")
-print(f"Qtde Itens....: {pedido.qtde_itens}")
+logger.info(f"{len(arquivos)} PDF(s) encontrado(s).\n")
 
-print("\n================ PRODUTOS ================\n")
+for pdf in arquivos:
 
-for i, produto in enumerate(pedido.produtos, start=1):
-    print(f"Produto {i}")
-    print(f"Código......: {produto.codigo}")
-    print(f"Descrição...: {produto.descricao}")
-    print(f"CX em KG....: {produto.cx_kg}")
-    print(f"Volume......: {produto.volume}")
-    print(f"Venda.......: R$ {produto.venda:.2f}")
-    print(f"Total.......: R$ {produto.venda_total:.2f}")
-    print(f"Comissão....: R$ {produto.comissao:.2f}")
-    print("-" * 40)
+    logger.info(f"Lendo: {pdf.name}")
+
+    texto = ler_pdf(pdf)
+
+    pedido = extrair_pedido(texto)
+
+    erros = Validator.validar(pedido)
+
+    if erros:
+
+        logger.info("ERRO(S):")
+
+        for erro in erros:
+
+            logger.info(f"  • {erro}")
+
+        files.mover(pdf, PASTA_ERROS)
+
+        logger.separador()
+
+        continue
+
+    logger.info(f"Pedido: {pedido.numero}")
+
+    logger.info(f"Cliente: {pedido.nome_cliente}")
+
+    logger.info(f"Produtos: {len(pedido.produtos)}")
+
+    excel.gerar(pedido)
+
+    files.mover(pdf, PASTA_IMPORTADOS)
+
+    logger.info("PDF movido para Importados.")
+
+    logger.separador()
+
+logger.info("Processamento finalizado.")
