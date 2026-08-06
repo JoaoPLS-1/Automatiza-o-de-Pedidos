@@ -58,7 +58,9 @@ for pdf in arquivos:
 
     logger.info(f"Produtos: {len(pedido.produtos)}")
 
-    excel.gerar(pedido)
+    arquivo_excel = excel.gerar(pedido)
+
+    logger.info(f"Planilha criada: {arquivo_excel.name}")
 
     files.mover(pdf, PASTA_IMPORTADOS)
 
