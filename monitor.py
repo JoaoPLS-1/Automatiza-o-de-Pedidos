@@ -1,3 +1,5 @@
+from queue_manager import QueueManager
+
 import time
 from pathlib import Path
 
@@ -11,6 +13,7 @@ from processor import processar_pdf
 
 logger = Logger()
 
+queue = QueueManager()
 
 def aguardar_pdf_liberado(pdf: Path,
                           tentativas=20,
@@ -51,7 +54,11 @@ class MonitorPedidos(FileSystemEventHandler):
 
         if aguardar_pdf_liberado(caminho):
 
-            processar_pdf(caminho)
+            queue.adicionar(caminho)
+
+            logger.info(
+            f"Fila: {queue.tamanho()} pedido(s)"
+)
 
         else:
 
@@ -75,6 +82,13 @@ def iniciar_monitor():
         str(PASTA_PEDIDOS),
         recursive=False
     )
+    logger.info("Verificando pedidos pendentes...")
+
+    for pdf in sorted(PASTA_PEDIDOS.glob("*.pdf")):
+
+        logger.info(f"Adicionado à fila: {pdf.name}")
+
+        queue.adicionar(pdf)
 
     observer.start()
 
