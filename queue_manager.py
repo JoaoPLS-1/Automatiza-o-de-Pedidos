@@ -33,7 +33,11 @@ class QueueManager:
 
             except Exception as e:
 
-                print(f"Erro ao processar {pdf.name}: {e}")
+                from error_handler import ErrorHandler
+
+                ErrorHandler.registrar(e)
+
+                print(f"Erro: {e}")
 
             finally:
 
