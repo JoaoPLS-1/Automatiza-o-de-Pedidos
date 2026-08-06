@@ -84,14 +84,22 @@ def extrair_pedido(texto):
     qtde_itens = re.search(r"Qtde itens:\s*(\d+)", texto)
 
     prazo_texto = prazo.group(1).strip() if prazo else ""
-    prazo_match = re.search(r"(\d+(?:/\d+)*)$", prazo_texto)
-    prazo_pgto = prazo_match.group(1) if prazo_match else prazo_texto
+
+    prazo_match = re.search(
+        r"(\d+(?:/\d+)*)$",
+        prazo_texto
+    )
+
+    prazo_pgto = (
+        prazo_match.group(1)
+        if prazo_match
+        else prazo_texto
+    )
 
     pedido = Pedido(
         numero=numero.group(1) if numero else "",
         codigo_cliente=cliente.group(1) if cliente else "",
         nome_cliente=cliente.group(2).strip() if cliente else "",
-        prazo_texto=prazo_texto,
         prazo_pgto=prazo_pgto,
         entrega=entrega.group(1).strip() if entrega else "",
         vendedor=vendedor.group(1).strip() if vendedor else "",
